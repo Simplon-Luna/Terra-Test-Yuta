@@ -253,6 +253,6 @@ resource "azurerm_lb_outbound_rule" "outbound_rule_panel" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.backendpoolpanel.id
 
   frontend_ip_configuration {
-    name = azurerm_network_interface.myterraformnetworkinterfaceLoadB.frontend_ip_configuration.name
+    name = azurerm_lb.load-balance.frontend_ip_configuration.name
   }
 }
