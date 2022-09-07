@@ -1,9 +1,7 @@
-# Resource group name creation
 resource "random_pet" "rg_name" {
   prefix = var.resource_group_name_prefix
 }
 
-# Resource group creation
 resource "azurerm_resource_group" "rg" {
   name     = random_pet.rg_name.id
   location = var.resource_group_location
@@ -17,42 +15,52 @@ resource "azurerm_virtual_network" "myterraformnetwork" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-# create subnet 1
-# resource "azurerm_subnet" "myterraformsubnetpterodactil" {
-#   name                 = "${var.prefix}_subnet_pterodactil"
-#   resource_group_name  = azurerm_resource_group.rg.name
-#   virtual_network_name = azurerm_virtual_network.myterraformnetwork.name
-#   address_prefixes     = ["10.0.4.0/24"]
-# }
+resource "azurerm_virtual_network" "myterraformnetworkBastion" {
+  name                = "${var.prefix}bastion"
+  address_space       = ["10.0.4.0/24"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
 
-# create subnet Wings
+# create subnet 1
+resource "azurerm_subnet" "myterraformbastionsubnet" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.myterraformnetworkBastion.name
+  address_prefixes     = ["10.0.4.0/24"]
+}
+
+# create subnet 2
 resource "azurerm_subnet" "myterraformsubnepterodactil" {
   name                 = "${var.prefix}_subnet_wings"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.myterraformnetwork.name
   address_prefixes     = ["10.0.6.0/24"]
 }
-
-# create public ip Panel
+# create public ip 1
 resource "azurerm_public_ip" "mypublicip" {
-  name                 = "${var.prefix}_public_ip_Panel"
+  name                 = "${var.prefix}_public_ip1"
   resource_group_name  = azurerm_resource_group.rg.name
   location             = azurerm_resource_group.rg.location
-  # virtual_network_name = azurerm_virtual_network.myterraformnetwork.name
   allocation_method    = "Static"
 }
-
-# create public ip Load Balancer - Front
+# create public ip 2
 resource "azurerm_public_ip" "mypublicip2" {
-  name                 = "${var.prefix}_public_ip_LoadB_Front"
+  name                 = "${var.prefix}_public_ip2"
   resource_group_name  = azurerm_resource_group.rg.name
   location             = azurerm_resource_group.rg.location
-  # virtual_network_name = azurerm_virtual_network.myterraformnetwork.name
   allocation_method    = "Static"
   sku                  = "Standard"
 }
-
-# Create Network Security Group and Rules
+# create public ip 3
+resource "azurerm_public_ip" "mypublicip3" {
+  name                 = "${var.prefix}_public_ip3"
+  resource_group_name  = azurerm_resource_group.rg.name
+  location             = azurerm_resource_group.rg.location
+  allocation_method    = "Static"
+  sku                  = "Standard"
+}
+# Create Network Security Group and rule
 resource "azurerm_network_security_group" "myterraformsecuritygroup" {
   name                = "${var.prefix}_security_group"
   location            = azurerm_resource_group.rg.location
@@ -71,47 +79,47 @@ resource "azurerm_network_security_group" "myterraformsecuritygroup" {
   }
 }
 
-# Create network interface public Panel
+# Create network interface public
 resource "azurerm_network_interface" "myterraformnetworkinterface" {
   name                = "${var.prefix}_network_interface1"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "${var.prefix}_ip_config_Panel_Pub"
+    name                          = "${var.prefix}_ip_config1"
     subnet_id                     = azurerm_subnet.myterraformsubnepterodactil.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.mypublicip.id
   }
 }
 
-# Create network interface Private Panel
-resource "azurerm_network_interface" "myterraformnetworkinterfacePanel" {
-  name                = "${var.prefix}_network_interface_Panel_Priv"
+#privé
+resource "azurerm_network_interface" "myterraformnetworkinterfaceWingsP1" {
+  name                = "${var.prefix}_network_interface2"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "${var.prefix}_ip_config_Panel"
+    name                          = "${var.prefix}_ip_config2"
     subnet_id                     = azurerm_subnet.myterraformsubnepterodactil.id
     private_ip_address_allocation = "Dynamic"
   }
 }
-# Create network interface Wings
-resource "azurerm_network_interface" "myterraformnetworkinterfaceWings" {
-  name                = "${var.prefix}_network_interface_Wings"
+#privé
+resource "azurerm_network_interface" "myterraformnetworkinterfaceWingsP2" {
+  name                = "${var.prefix}_network_interface3"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "${var.prefix}_ip_config_Wings"
+    name                          = "${var.prefix}_ip_config3"
     subnet_id                     = azurerm_subnet.myterraformsubnepterodactil.id
     private_ip_address_allocation = "Dynamic"
   }
 }
-# Create network interface LoadB
-resource "azurerm_network_interface" "myterraformnetworkinterfaceLoadB" {
-  name                = "${var.prefix}_network_interface_LoadB"
+#privé
+resource "azurerm_network_interface" "myterraformnetworkinterfaceWingsP3" {
+  name                = "${var.prefix}_network_interface4"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -127,12 +135,12 @@ resource "azurerm_network_interface_security_group_association" "terraformconnec
   network_security_group_id = azurerm_network_security_group.myterraformsecuritygroup.id
 }
 
-# Create Panel VM
+# Create virtual machine
 resource "azurerm_linux_virtual_machine" "myterraformvmpanel" {
-  name                  = "${var.prefix}_vmPanel"
+  name                  = "${var.prefix}_vm"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.myterraformnetworkinterface.id, azurerm_network_interface.myterraformnetworkinterfacePanel.id]
+  network_interface_ids = [azurerm_network_interface.myterraformnetworkinterface.id, azurerm_network_interface.myterraformnetworkinterfaceWingsP1.id]
   size                  = "Standard_DS1_v2"
 
   os_disk {
@@ -148,18 +156,17 @@ resource "azurerm_linux_virtual_machine" "myterraformvmpanel" {
     version   = "latest"
   }
 
-  computer_name                   = "myvmPanel"
+  computer_name                   = "myvm"
   admin_username                  = "azureuser"
   disable_password_authentication = false
   admin_password                  = "123456Azerty$."
 }
 
-# Create Wings VM
 resource "azurerm_linux_virtual_machine" "myterraformwings" {
-  name                  = "${var.prefix}_vmWings"
+  name                  = "${var.prefix}_wings"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.myterraformnetworkinterfaceWings.id]
+  network_interface_ids = [azurerm_network_interface.myterraformnetworkinterfaceWingsP2.id]
   size                  = "Standard_DS1_v2"
 
   os_disk {
@@ -175,14 +182,13 @@ resource "azurerm_linux_virtual_machine" "myterraformwings" {
     version   = "latest"
   }
 
-  computer_name                   = "myvmWings"
+  computer_name                   = "myvm"
   admin_username                  = "wingsuser"
   disable_password_authentication = false
   admin_password                  = "123456ytreza$."
 }
 
-# Creation of Redis
-# /!\ NOTE: the Name used for Redis needs to be globally unique /!\
+# NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "redis_azure" {
   name                = "${var.prefix}redis"
   location            = azurerm_resource_group.rg.location
@@ -196,7 +202,7 @@ resource "azurerm_redis_cache" "redis_azure" {
   redis_configuration {
   }
 }
-# Creation of MariaDB
+#mariadb
 resource "azurerm_mariadb_server" "mariadbterraform" {
   name                = "${var.prefix}mariadb"
   location            = azurerm_resource_group.rg.location
@@ -216,7 +222,6 @@ resource "azurerm_mariadb_server" "mariadbterraform" {
   ssl_enforcement_enabled       = true
 }
 
-# Creation of Load Balancer
 resource "azurerm_lb" "load-balance" {
   name                = "${var.prefix}_load-blance"
   location            = azurerm_resource_group.rg.location
@@ -224,27 +229,25 @@ resource "azurerm_lb" "load-balance" {
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = "${var.prefix}ip_public_LoadB"
+    name                 = "${var.prefix}ip_public2"
     public_ip_address_id = azurerm_public_ip.mypublicip2.id
   }
 }
 
-# Creation of LoadB Backend Pool Panel
+
 resource "azurerm_lb_backend_address_pool" "backendpoolpanel" {
   resource_group_name = azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.load-balance.id
   name                = "BackEndAddressPool"
 }
 
-# Creation of Backend Pool's Private IP address
 resource "azurerm_lb_backend_address_pool_address" "backendpollAdresse" {
-  name                    = "${var.prefix}BackendPool"
+  name                    = "example"
   backend_address_pool_id = azurerm_lb_backend_address_pool.backendpoolpanel.id
   virtual_network_id      = azurerm_virtual_network.myterraformnetwork.id
-  ip_address              = azurerm_network_interface.myterraformnetworkinterfaceLoadB.private_ip_address
+  ip_address              = azurerm_network_interface.myterraformnetworkinterfaceWingsP3.private_ip_address
 }
 
-# Config of LoadB Outbound rules
 resource "azurerm_lb_outbound_rule" "outbound_rule_panel" {
   name                    = "${var.prefix}OutboundRule"
   resource_group_name = azurerm_resource_group.rg.name
@@ -253,6 +256,62 @@ resource "azurerm_lb_outbound_rule" "outbound_rule_panel" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.backendpoolpanel.id
 
   frontend_ip_configuration {
-    name = azurerm_lb.load-balance.frontend_ip_configuration[0].name
+    name = "${var.prefix}ip_public2"
   }
 }
+
+
+resource "azurerm_recovery_services_vault" "myvault" {
+  name                = "${var.prefix}vault"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "Standard"
+}
+
+# resource "azurerm_backup_policy_vm" "vault_policy" {
+#   name                = "${var.prefix}vaultpolicy"
+#   resource_group_name = azurerm_resource_group.rg.name
+#   recovery_vault_name = azurerm_recovery_services_vault.myvault.name
+
+#   timezone = "UTC"
+
+#   backup {
+#     frequency = "Daily"
+#     time      = "23:00"
+#   }
+
+#   retention_daily {
+#     count = 1
+#   }
+
+#   retention_weekly {
+#     count    = 1
+#     weekdays = ["Sunday"]
+#   }
+
+#   retention_monthly {
+#     count    = 4
+#     weekdays = ["Sunday", "Wednesday"]
+#     weeks    = ["First", "Last"]
+#   }
+
+#   retention_yearly {
+#     count    = 1
+#     weekdays = ["Sunday"]
+#     weeks    = ["Last"]
+#     months   = ["January"]
+#   }
+# }
+
+
+# resource "azurerm_bastion_host" "mybastion" {
+#   name                = "${var.prefix}_bastion"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
+
+#   ip_configuration {
+#     name                 = "configuration"
+#     subnet_id            = azurerm_subnet.myterraformbastionsubnet.id
+#     public_ip_address_id = azurerm_public_ip.mypublicip3.id
+#   }
+# }
